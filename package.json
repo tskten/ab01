@@ -1,0 +1,16 @@
+{
+  "name": "ab01",
+  "version": "1.0.0",
+  "description": "",
+  "main": "alice.js",
+  "dependencies": {
+    "deepstream.io-client-js": "^2.3.3",
+    "wrtc": "^0.4.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
