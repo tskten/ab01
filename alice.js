@@ -44,6 +44,12 @@ function dirInfo(dir) {
     }
     ret.push(e);
   }
+  ret.sort((a,b) => {
+    if (a.type!=b.type) {
+      return (a.type=='dir')?-1:1;
+    }
+    return a.mtime>b.mtime?-1:1;
+  });
   return ret;
 }
 
