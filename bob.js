@@ -2,7 +2,14 @@
 
 const rtcconfig={
     iceServers: [{urls:'stun:stun2.l.google.com:19302'}]
-}
+};
+
+let signalingOptions= {
+  server:'wss://server.url',
+  login: {type: 'file',username: 'bob',password: 'bobpassword'}
+};
+
+let peername='alice';
 
 class BobSession extends Session {
   constructor(opts) {
@@ -49,17 +56,6 @@ class BobSession extends Session {
     c.res.emit('result',msg.result);
   }
 }
-
-let login={type: 'file',username: 'bob',password: 'bobpassword'};
-
-const serverUrl='wss://server.url';
-
-const signalingOptions= {
-  server:serverUrl,
-  login: login
-}
-
-let peername='alice';
 
 let currentDir='';
 
@@ -129,11 +125,9 @@ function start() {
       const sess=new BobSession(opts);
       sess.on('debug', (...l) => console.log(`D]${sess.id}:`, ...l));
       sess.on('message', (...m) => console.log(`M]${sess.id}`, ...m));
-      sess.on('channelopen', () => {console.log('CO'),cd('')});
+      sess.on('channelopen', () => {console.log('CO');cd('');});
       window.sess=sess;
     }
   });
   s.signal(peername,{type:'new',nid:nid});
 }
-
-start();

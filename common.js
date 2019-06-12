@@ -174,7 +174,7 @@ class Session extends EventEmitter {
     this.peer=new Peer(opts.config,opts.peername);
     this.peer.on('signal', signal => this.signaling.signal(this.peername,signal,this.id));
     this.peer.on('message', m => this.emit('message',m));
-    this.peer.on('debug', log => this.emit('debug',`/peer:${log}`));
+    this.peer.on('debug', (...l) => this.emit('debug',`.peer:`, ...l));
     this.peer.on('channelopen', () => this.emit('channelopen'));
 
     if (typeof opts.offer != 'undefined') this.accept(opts.offer);
@@ -209,5 +209,5 @@ if (isnode) {
     Signaling:Signaling,
     Peer:Peer,
     Session:Session
-  }
+  };
 }

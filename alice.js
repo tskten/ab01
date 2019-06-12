@@ -3,19 +3,11 @@
 const _common=require('./common');
 const fs=require('fs');
 const path=require('path');
+const conf=require('./alice.conf');
 //const EventEmitter=require('events');
 //const Peer=_common.Peer;
 const Signaling=_common.Signaling;
 const Session=_common.Session;
-
-const login={type: 'file',username: 'alice',password: 'alicepassword'};
-
-const serverUrl='wss://server.url';
-
-const signalingOptions= {
-  server:serverUrl,
-  login: login
-}
 
 const rtcconfig={
   iceServers: [{urls:'stun:stun2.l.google.com:19302'}]
@@ -23,7 +15,7 @@ const rtcconfig={
 
 const sessions={};
 
-const signaling=new Signaling(signalingOptions);
+const signaling=new Signaling(conf.signalingOptions);
 
 const exportRoot='./storage';
 
@@ -43,9 +35,9 @@ function dirInfo(dir) {
     const stat=fs.statSync(path.resolve(dir,f));
     let e={name:f,mtime:stat.mtime};
     if (stat.isDirectory()) {
-      e.type='dir'
+      e.type='dir';
     } else if (stat.isFile()) {
-      e.type='file'
+      e.type='file';
       e.size=stat.size;
     } else {
       continue;
@@ -53,6 +45,11 @@ function dirInfo(dir) {
     ret.push(e);
   }
   return ret;
+}
+
+function isAncDir(a,b) {
+  let rel=path.relative(a,b);
+  return rel == '..' || rel.startsWith('../');
 }
 
 class AliceSession extends Session {
@@ -75,25 +72,36 @@ class AliceSession extends Session {
     };
     switch (cmd.cmd) {
       case 'ls':
-        let p=cmd.path,i;
-        for (i=0;i<p.length && p[i]=='/'; ++i)
-          ;
-        if (i>0) p=p.slice(i);
-        p=path.resolve(exportRoot,p);
-        let rel=path.relative(exportRoot,p);
-        if (rel == '..' || rel.startsWith('../')) {
-          ret.err='no such file or directory';
-        } else {
-          try {
-            ret.result=dirInfo(p);
-          } catch (e) {
-            ret.err=errStr(e);
-          }
-        }
-        this.sendMessage(ret);
+        this.handleLs(cmd,ret);
+        break;
+      case 'download':
+        this.handleDownload(cmd,ret);
         break;
       }
   }
+
+  handleLs(cmd,ret) {
+    let p=cmd.path;
+    p=path.resolve(`${exportRoot}/${p}`);
+    if (isAncDir(exportRoot,p)) {
+      ret.err='no such file or directory';
+    } else {
+      try {
+        ret.result=dirInfo(p);
+      } catch (e) {
+        ret.err=errStr(e);
+      }
+    }
+    this.sendMessage(ret);
+  }
+
+  handleDownload(cmd,ret) {
+    ;
+  }
+}
+
+function hhmmssnow() {
+  return (new Date).toTimeString().slice(0,8);
 }
 
 function randStr(len) {
@@ -119,7 +127,7 @@ function newSession(peername,id) {
     peername:peername,
     signaling:signaling,
     config:rtcconfig,
-  }
+  };
   sessions[id]=new AliceSession(opts);
   return sessions[id];
 }
@@ -135,6 +143,6 @@ signaling.on('signal', msg => {
     const s=newSession(msg.from,sid);
     s.initiate();
     //s.on('message',console.log);
-    s.on('debug', (...log) => console.log(`D]${sid}:`, ...log));
+    s.on('debug', (...log) => console.log(`${hhmmssnow()} D]${sid}:`, ...log));
   }
 });
